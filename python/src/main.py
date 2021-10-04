@@ -1,10 +1,8 @@
 import sys
-from SEEGFusion import ImageFusion, Image
+from SEEGFusion import ImageFusion
 
 def main(argv):
-    imf = Image()
-    print(imf)
-
+    pass
 
 if __name__ == "__main__":
     main(sys.argv)

@@ -1,0 +1,11 @@
+## Python
+python/src/__pycache__
+# Environments 
+.env 
+.venv 
+env/ 
+venv/ 
+ENV/ 
+env.bak/ 
+venv.bak/
+
