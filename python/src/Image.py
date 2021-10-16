@@ -11,11 +11,15 @@ class Image():
     image = sitk.Image() 
     original_image = sitk.Image()
 
-    def __init__(self,image_path = None):
+    def __init__(self,image = None):
 
-        if image_path:
-            self.image = self.readImage(image_path)
-            self.original_image = self.readImage(image_path)
+        if image:
+            if type(image).__name__=='image':
+                self.image = image
+                self.original_image = image
+            else:
+                self.image = self.readImage(image)
+                self.original_image = self.image
 
     def set_image(self,image_path):
         self.image = self.readImage(image_path)
@@ -83,6 +87,28 @@ class Image():
         )
 
         self.image = output_image
+
+    def normalizeImage(self):
+        """Docstring for normalizeImage.
+
+        :function: Normalize teh image 
+
+        """
+        max_min_filter = sitk.MinimumMaximumImageFilter()
+        max_min_filter.Execute(self.image)
+        max_img = max_min_filter.GetMaximum()
+        min_img = max_min_filter.GetMinimum()
+        self.image = sitk.IntensityWindowing(
+            self.image,
+            windowMinimum=min_img,
+            windowMaximum=max_img,
+            outputMinimum=0.0,
+            outputMaximum=2 ** 16,
+        )
+        
+        del max_min_filter
+        del max_img
+        del min_img
 
     def getSkull(self):
         """Docstring for getSkull.
@@ -170,3 +196,27 @@ class Image():
         del mask
 
         return treshold_image, skull, electrodes
+
+    def resizeImage(self, new_size):
+        """Docstring for resizeImage.
+
+        :function: resize the image
+
+        """
+        resample = sitk.ResampleImageFilter()
+        resample.SetInterpolator(sitk.sitkLinear)
+        resample.SetOutputDirection(self.image.GetDirection())
+        resample.SetOutputOrigin(self.image.GetOrigin())
+
+        orig_spacing = np.array(self.image.GetSpacing())
+
+        orig_size = np.array(self.image.GetSize())
+
+        new_size = [int(s) for s in new_size]
+        new_spacing = orig_spacing * (orig_size / new_size)  # Compute the new spacing
+        resample.SetOutputSpacing(new_spacing)
+
+        resample.SetSize(new_size)
+
+        self.image = resample.Execute(self.image)
+    
