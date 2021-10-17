@@ -2,6 +2,7 @@ import SimpleITK as sitk
 import numpy as np
 from Image import Image
 import gc
+import os
    
 
 class ImageRegistration():
@@ -60,9 +61,9 @@ class ImageRegistration():
 
         del registration_method
 
-        gc.collect()
-
         self.transform = final_transform
+
+        gc.collect()
 
         return final_transform
 
@@ -107,7 +108,46 @@ class ImageFusion(ImageRegistration):
         skull = sitk.Resample(skull, self.atlas, align_head_transform, sitk.sitkLinear, 0.0, skull.GetPixelID() )
         electrodes_image = sitk.Resample(electrodes_image, self.atlas, align_head_transform, sitk.sitkLinear, 0.0, electrodes_image.GetPixelID())
 
+        del registration
+        del reg_transform
+
+        gc.collect()
+
         return (thresh, skull, electrodes_image, align_head_transform,)
+
+    def getBrainMask(self, skull, mri=None):
+
+        mri = mri if mri else self.aligned_mri
+
+        # Save image in temp directory
+        sitk.WriteImage(mri, "temp/mri_image.nii")
+        # Execute ROBEX  using the saved imageWe
+        if os.system("runROBEX.sh temp/mri_image.nii temp/no_skull_mri.nii") != 0:
+            print("Error removing skull")
+            exit()
+        else:
+            # get the mri with only the brain
+            no_skull = sitk.ReadImage("temp/no_skull_mri.nii")
+
+            max_min_filter = sitk.MinimumMaximumImageFilter()
+            max_min_filter.Execute(no_skull)
+            max_img = max_min_filter.GetMaximum()
+            min_img = max_min_filter.GetMinimum()
+
+            # get the mask for the brain
+            mask = sitk.BinaryThreshold(no_skull, lowerThreshold=1, upperThreshold=max_img)
+            mask = sitk.BinaryErode(mask, (6,) * 3, sitk.sitkBall)
+            mask = sitk.And(mask, sitk.Not(skull))
+
+            os.system("rm temp/* ")
+
+            del max_min_filter
+            del max_img
+            del min_img
+
+        gc.collect()
+
+        return mask
 
     def fuseImages(self, transform = sitk.AffineTransform(3), use_mask = True, align_head = False):
         """Docstring for fuseImages.
@@ -141,3 +181,9 @@ class ImageFusion(ImageRegistration):
         
         if align_head:
             (treshold_image, skull, electrodes_image, align_head_transform ) = self.alignHead(treshold_image, electrodes_image, skull)
+
+        brain_mask = self.getBrainMask(skull)
+
+        electrodes_image = sitk.And(
+            treshold_image, brain_mask
+        )  # Totally remove skull from electrode simage
