@@ -1,3 +1,4 @@
+from os.path import abspath, join
 import SimpleITK as sitk
 import numpy as np
 from Image import Image
@@ -48,8 +49,8 @@ class ImageRegistration():
         registration_method.SetInitialTransform(initial_transform, inPlace=False)
 
         final_transform = registration_method.Execute(
-            sitk.Cast(self.fixed_img, sitk.sitkFloat32),
-            sitk.Cast(self.moving_img, sitk.sitkFloat32),
+            sitk.Cast(self.fixed_img.image, sitk.sitkFloat32),
+            sitk.Cast(self.moving_img.image, sitk.sitkFloat32),
         )
 
         print("Final metric value: {0}".format(registration_method.GetMetricValue()))
@@ -89,7 +90,7 @@ class ImageFusion(ImageRegistration):
         self.atlas = Image(atlas)
         self.aligned_mri = Image()
 
-    def setAtlat(self,atlas):
+    def setAtlas(self,atlas):
         self.atlas = Image(atlas)
 
     def alignHead(self, thresh, electrodes_image, skull):
@@ -117,17 +118,20 @@ class ImageFusion(ImageRegistration):
 
     def getBrainMask(self, skull, mri=None):
 
-        mri = mri if mri else self.aligned_mri
+        mri = mri if mri else self.aligned_mri.image
 
         # Save image in temp directory
-        sitk.WriteImage(mri, "temp/mri_image.nii")
+        temp_path = join(abspath(__file__), 'temp') 
+        mri_path = join(temp_path, 'mri_image.nii')
+        output_path = join(temp_path, 'no_skull_mri.nii')
+        sitk.WriteImage(mri, mri_path)
         # Execute ROBEX  using the saved imageWe
-        if os.system("runROBEX.sh temp/mri_image.nii temp/no_skull_mri.nii") != 0:
-            print("Error removing skull")
+        if os.system(f'runROBEX.sh {mri_path} {output_path}') != 0:
+            print('Error removing skull')
             exit()
         else:
             # get the mri with only the brain
-            no_skull = sitk.ReadImage("temp/no_skull_mri.nii")
+            no_skull = sitk.ReadImage(output_path)
 
             max_min_filter = sitk.MinimumMaximumImageFilter()
             max_min_filter.Execute(no_skull)
@@ -139,7 +143,7 @@ class ImageFusion(ImageRegistration):
             mask = sitk.BinaryErode(mask, (6,) * 3, sitk.sitkBall)
             mask = sitk.And(mask, sitk.Not(skull))
 
-            os.system("rm temp/* ")
+            os.system(f"rm {temp_path}/* ")
 
             del max_min_filter
             del max_img
@@ -148,6 +152,30 @@ class ImageFusion(ImageRegistration):
         gc.collect()
 
         return mask
+
+    def combineImages(self, electrodes_image):
+        """TODO: Docstring for combineImages.
+        :function: Combine the aligned image with the segmentated electrodes
+        :returns: combined image
+        """
+        fused_image = sitk.Mask(self.aligned_mri.image, sitk.Not(electrodes_image))
+
+        electrodes = sitk.Cast(electrodes_image, sitk.sitkFloat32)
+        electrodes = sitk.IntensityWindowing(
+            electrodes,
+            windowMinimum=0,
+            windowMaximum=1,
+            outputMinimum=0.0,
+            outputMaximum=2 ** 16,
+        )
+
+        fused_image = sitk.Add(fused_image, electrodes)
+
+        del electrodes
+
+        gc.collect()
+
+        return fused_image
 
     def fuseImages(self, transform = sitk.AffineTransform(3), use_mask = True, align_head = False):
         """Docstring for fuseImages.
@@ -174,16 +202,24 @@ class ImageFusion(ImageRegistration):
         )
         align_moving_transform = super().rigidRegistration(reg_transform, mask_electrodes, 1.0, 100)
 
-        del mask_electrodes
 
         # Register MRI using the transform
         self.aligned_mri.image = sitk.Resample(self.moving_img.image, self.fixed_img.image, align_moving_transform, sitk.sitkLinear, 0.0, self.moving_img.image.GetPixelID())
         
         if align_head:
-            (treshold_image, skull, electrodes_image, align_head_transform ) = self.alignHead(treshold_image, electrodes_image, skull)
+            (treshold_image, skull, electrodes_image, _ ) = self.alignHead(treshold_image, electrodes_image, skull)
 
         brain_mask = self.getBrainMask(skull)
 
-        electrodes_image = sitk.And(
-            treshold_image, brain_mask
-        )  # Totally remove skull from electrode simage
+        electrodes_image = sitk.And(treshold_image, brain_mask)  # Totally remove skull from electrode simage
+
+        fused_image = self.combineImages(electrodes_image)
+
+        del treshold_image
+        del mask_electrodes
+        del brain_mask
+        del electrodes_image 
+        gc.collect()
+        print('Image fused')
+
+        return fused_image
