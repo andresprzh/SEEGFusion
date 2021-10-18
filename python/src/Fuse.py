@@ -1,6 +1,5 @@
 from SEEGFusion import ImageFusion
 import SimpleITK as sitk
-import json
 import sys
 from os.path import dirname, abspath, join
 
@@ -26,10 +25,13 @@ def main(argv):
                 dirname(abspath(__file__))
             )
         ), 
-        'data/output/fused_image.nii'
+        'data/output'
     )
 
-    sitk.WriteImage(output_image, output_path)
+   
+    sitk.WriteImage(output_image, join(output_path,'fused_image.nii'))
+    sitk.WriteImage(fusion.aligned_mri.image, join(output_path,'registered.nii'))
+    sitk.WriteTransform(fusion.registration_transform, join(output_path, 'registration_transform.txt'))
 
 if __name__ == "__main__":
     main(sys.argv)

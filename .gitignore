@@ -13,6 +13,7 @@ venv.bak/
 data/*
 !data/atlas
 !data/output
+!data/data_template.json
 data/output/*
 
 

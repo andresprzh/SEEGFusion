@@ -1,0 +1,16 @@
+{
+    "images": [
+        {
+            "fixed": "<fixed_image_path>",
+            "moving": "<movinf_image_path>"
+        },
+        {
+            "fixed": "<fixed_image_path>",
+            "moving": "<movinf_image_path>"
+        },
+        {
+            "fixed": "<fixed_image_path>",
+            "moving": "<movinf_image_path>"
+        }
+    ]
+}

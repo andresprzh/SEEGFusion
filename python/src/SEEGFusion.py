@@ -83,6 +83,7 @@ class ImageFusion(ImageRegistration):
     Class for imageFusion object, has the funtions and 
     atributes tofuse MRI and CT images from an SEEG
     """
+    registration_transform = None
 
     def __init__(self, ct = None, mri = None, atlas=None):
         super().__init__(ct, mri)
@@ -188,7 +189,7 @@ class ImageFusion(ImageRegistration):
 
         return fused_image
 
-    def fuseImages(self, transform = sitk.AffineTransform(3), use_mask = True, align_head = False):
+    def fuseImages(self, transform = sitk.AffineTransform(3), use_mask = True, align_head = False, sampling_perc = 0.1, num_iter = 100):
         """Docstring for fuseImages.
 
         :function: Fuse the images using rigid registration
@@ -211,11 +212,11 @@ class ImageFusion(ImageRegistration):
             transform,
             sitk.CenteredTransformInitializerFilter.GEOMETRY
         )
-        align_moving_transform = super().rigidRegistration(reg_transform, mask_electrodes, 1.0, 100)
+        self.registration_transform = super().rigidRegistration(reg_transform, mask_electrodes, sampling_perc, num_iter)
 
 
         # Register MRI using the transform
-        self.aligned_mri.image = sitk.Resample(self.moving_img.image, self.fixed_img.image, align_moving_transform, sitk.sitkLinear, 0.0, self.moving_img.image.GetPixelID())
+        self.aligned_mri.image = sitk.Resample(self.moving_img.image, self.fixed_img.image, self.registration_transform, sitk.sitkLinear, 0.0, self.moving_img.image.GetPixelID())
         
         if align_head:
             (treshold_image, skull, electrodes_image, _ ) = self.alignHead(treshold_image, electrodes_image, skull)
