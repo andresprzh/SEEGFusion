@@ -1,4 +1,4 @@
-from os.path import abspath, join
+from os.path import abspath, join, dirname
 import SimpleITK as sitk
 import numpy as np
 from Image import Image
@@ -121,7 +121,7 @@ class ImageFusion(ImageRegistration):
         mri = mri if mri else self.aligned_mri.image
 
         # Save image in temp directory
-        temp_path = join(abspath(__file__), 'temp') 
+        temp_path = join(dirname(abspath(__file__)), 'temp') 
         mri_path = join(temp_path, 'mri_image.nii')
         output_path = join(temp_path, 'no_skull_mri.nii')
         sitk.WriteImage(mri, mri_path)

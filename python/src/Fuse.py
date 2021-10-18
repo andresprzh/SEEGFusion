@@ -20,9 +20,15 @@ def main(argv):
 
     output_image  = fusion.fuseImages()
 
-    output_path = join(dirname(dirname(abspath(__file__))), 'data/output/fused_image.nii')
+    output_path = join(
+        dirname(
+            dirname(
+                dirname(abspath(__file__))
+            )
+        ), 
+        'data/output/fused_image.nii'
+    )
 
-    import pdb; pdb.set_trace()
     sitk.WriteImage(output_image, output_path)
 
 if __name__ == "__main__":
