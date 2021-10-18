@@ -87,14 +87,25 @@ class ImageFusion(ImageRegistration):
     def __init__(self, ct = None, mri = None, atlas=None):
         super().__init__(ct, mri)
         self.fixed_img.tiltCorection()
-        self.atlas = Image(atlas)
         self.aligned_mri = Image()
+
+        if not atlas:
+            atlas = join(
+                dirname(
+                    dirname(
+                        dirname(abspath(__file__))
+                    )
+                ), 
+                'data/atlas/sri24/templates/T1.nii'
+            )
+
+        self.atlas = Image(atlas)
 
     def setAtlas(self,atlas):
         self.atlas = Image(atlas)
 
     def alignHead(self, thresh, electrodes_image, skull):
-
+        
         self.atlas.resizeImage(np.array(self.aligned_mri.image.GetSize()))
 
 
