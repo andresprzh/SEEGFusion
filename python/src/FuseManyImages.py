@@ -8,7 +8,7 @@ import sys
 def main(argv):
 
     if len(sys.argv)<2:
-        print('python Fuse.py <json_path> <output_path>')
+        print('python FuseManyImages.py <json_path> <output_path>')
         exit()
     if len(sys.argv)<3:
         output_path = join(
