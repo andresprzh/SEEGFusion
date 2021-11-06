@@ -30,7 +30,7 @@ def main(argv):
     i = 1
     for image_path in images_path:
         fusion = ImageFusion(image_path['fixed'],image_path['moving'])
-        output_image = fusion.fuseImages(use_mask=False, sampling_perc=1, num_iter=300)
+        output_image = fusion.fuseImages(use_mask=True, sampling_perc=0.4, num_iter=200)
 
         output_image_path = join(output_path, str(i))
         if not exists(output_image_path):

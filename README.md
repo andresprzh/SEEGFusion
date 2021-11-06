@@ -1,5 +1,9 @@
 # SEEGFusion
 
+Fuse a CT image with a MRI image from an Stereotactic ElectroEncephalography (SEEG).
+
+![Fusion method](images/image_fusion.png)
+
 ## Prerequisites
 
 To use SEEGFusion  The following software and toolkits are required
@@ -43,3 +47,22 @@ Install using python pip, [SimpleITK](https://simpleitk.readthedocs.io/en/master
 
 ```shell
 pip install SimpleITK
+```
+
+---------------------
+
+## Setu up virtual environment for python
+
+```shell
+python -m venv venv
+source  venv/bin/activate
+pip install -r python/requirements.txt
+```
+
+### Fue 2 images
+
+To fuse two images use the script in `python/src/Fuse.py`
+
+```shell
+python Fuse.py ct_path mri_path output_path
+```
