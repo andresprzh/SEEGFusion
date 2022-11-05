@@ -1,3 +1,4 @@
+"""Fuse Many image of CT and RMI using a json file """
 from os.path import dirname, abspath, join, exists
 from os import makedirs
 from SEEGFusion import ImageFusion

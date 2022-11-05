@@ -59,7 +59,7 @@ source  venv/bin/activate
 pip install -r python/requirements.txt
 ```
 
-### Fue 2 images
+### Fuse 2 images
 
 To fuse two images use the script in `python/src/Fuse.py`
 
