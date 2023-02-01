@@ -1,2 +1,4 @@
 numpy==1.21.4
+plotly==5.13.0
 SimpleITK==2.2.1
+tenacity==8.1.0
