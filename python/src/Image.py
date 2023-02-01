@@ -89,10 +89,7 @@ class Image():
         self.image = output_image
 
     def normalizeImage(self):
-        """Docstring for normalizeImage.
-
-        :function: Normalize teh image 
-
+        """Docstring for normalize the Image.
         """
         max_min_filter = sitk.MinimumMaximumImageFilter()
         max_min_filter.Execute(self.image)

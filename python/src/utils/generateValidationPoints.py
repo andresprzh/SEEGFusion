@@ -1,3 +1,4 @@
+"""Generate a .csv file with the points to validate the transform"""
 from time import strftime,localtime
 from os.path import join, dirname, abspath
 import SimpleITK as sitk
@@ -10,7 +11,7 @@ TRANSFORM_FILES = []
 def main(argv):
 
     if len(sys.argv)<2:
-        print('python validateTransform.py <transforms_path>')
+        print('python generateValidationPoints.py <transforms_path>')
         exit()
     
     transforms_path = sys.argv[1]
@@ -45,6 +46,12 @@ def findTransforms(paths):
             findTransforms(path)
 
 def transformPoints2(transform, i):
+    """Generate a .csv file with the reference point , point form 
+    the method using a mask and from method withoutusing a mask
+
+    :param transform: `transformation` of the image.
+    :param i: `int` of the image number.
+    """
 
     output_file = join(
         dirname(
