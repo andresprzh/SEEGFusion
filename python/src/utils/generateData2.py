@@ -44,23 +44,23 @@ def main(argv):
             ),
             'data/output/'
         )
-        with open(f'{output_path}results_2.json', 'a',encoding="utf-8") as file:
+        with open(f'{output_path}results_3.json', 'a',encoding="utf-8") as file:
             json.dump(euclidean_dis, file)
 
     pandas_data = getPandasData(euclidean_dis)
     pandas_data = pd.DataFrame.from_dict(pandas_data)
-    pandas_data.to_csv(f'{output_path}results2.csv', index=False)
+    pandas_data.to_csv(f'{output_path}results3.csv', index=False)
     
     
     fig = px.box(pandas_data, x="Method", y="Euclidean distance", points="all")
-    fig.write_image(f'{output_path}results2_1.png')
+    fig.write_image(f'{output_path}results3.png')
     fig.show()
 
-    pandas_data = pandas_data[pandas_data['Image']!='image_6']
-
-    fig2 = px.box(pandas_data, x="Method", y="Euclidean distance", points="all")
-    fig2.write_image(f'{output_path}results2_2.png')
-    fig2.show()
+    #  pandas_data = pandas_data[pandas_data['Image']!='image_6']
+    #
+    #  fig2 = px.box(pandas_data, x="Method", y="Euclidean distance", points="all")
+    #  fig2.write_image(f'{output_path}results2_2.png')
+    #  fig2.show()
 
 
 def getPandasData(euclidean_dis):
